@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 
 
+
 class WinREEnvironment:
     """Handles system environment detection and drive mapping in WinRE."""
 
