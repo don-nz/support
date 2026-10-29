@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../assets/theme-init.js"></script>
+    <title>BitLocker Drives</title>
+    <link rel="stylesheet" href="../assets/nav-common.css">
+</head>
+<body>
+    <div class="crumb" id="crumb"><a href="../index.html">Support</a> / <a href="index.html">Linux</a> / <span>BitLocker Drives</span></div>
+    <header>
+        <h1>BitLocker Drives</h1>
+        <p>Unlock an encrypted Windows drive</p>
+    </header>
+
+    <p class="section-label" style="max-width:900px">A Windows 11 drive is often encrypted automatically (BitLocker / Device encryption), with the key held in the original PC's TPM. Moved to a dock or another machine it will not mount, even though the drive is fine. You need the <strong>48-digit recovery key</strong>, usually in the owner's Microsoft account at <code>aka.ms/myrecoverykey</code>.</p>
+    <p class="section-label" style="max-width:900px">1. Check whether the partition is BitLocker encrypted. Look for <code>BitLocker</code> in the FSTYPE column.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">check encryption</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>lsblk -f</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">2. Unlock it read-only. Enter the recovery key when prompted. Replace <code>/dev/sda2</code> with the encrypted partition.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">unlock</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo cryptsetup open --type bitlk --readonly /dev/sda2 bl_src</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">3. Mount the unlocked volume read-only as the source, then carry on with the copy steps.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">mount source</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo mkdir -p /mnt/source
+sudo mount -t ntfs3 -o ro /dev/mapper/bl_src /mnt/source</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">4. When finished, unmount and lock it again.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">close</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo umount /mnt/source
+sudo cryptsetup close bl_src</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">Continue with <a href="copy-windows-folders.html">Copy Windows Folders</a> from step 3 (the source is already mounted).</p>
+    <footer>Support // Linux // BitLocker Drives</footer>
+    <script>
+        function copyCode(btn) {
+            var pre = btn.closest('.code-box').querySelector('pre');
+            var code = pre.textContent;
+            function done() { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); }
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(code).then(done);
+            } else {
+                var r = document.createRange(); r.selectNodeContents(pre);
+                var s = getSelection(); s.removeAllRanges(); s.addRange(r);
+                document.execCommand('copy'); done();
+            }
+        }
+    </script>
+</body>
+</html>

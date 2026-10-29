@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../assets/theme-init.js"></script>
+    <title>Image a Failing Drive</title>
+    <link rel="stylesheet" href="../assets/nav-common.css">
+</head>
+<body>
+    <div class="crumb" id="crumb"><a href="../index.html">Support</a> / <a href="index.html">Linux</a> / <span>Image a Failing Drive</span></div>
+    <header>
+        <h1>Image a Failing Drive</h1>
+        <p>Make a rescue image with ddrescue</p>
+    </header>
+
+    <p class="section-label" style="max-width:900px">For a drive that is really failing, copying files can stress it and stall on bad sectors. <code>ddrescue</code> makes a full image instead, reading the good areas first and recording the bad ones in a map file so it can stop and resume. Work from the image afterwards, not the dying drive. The image needs a <strong>different, healthy drive</strong> with at least as much free space as the source.</p>
+    <p class="section-label" style="max-width:900px">1. Identify the failing drive (source) and the drive to hold the image. Getting these the wrong way round overwrites data.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">identify drives</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>lsblk -o NAME,FSTYPE,SIZE,MOUNTPOINTS,MODEL</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">2. Install ddrescue if the live ISO does not have it (the package is named <code>ddrescue</code>).</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">install</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo pacman -S ddrescue</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">3. Mount the healthy drive that will hold the image.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">mount image drive</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo mkdir -p /mnt/target
+sudo mount -t ntfs-3g -o remove_hiberfile /dev/nvme0n1p3 /mnt/target</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">4. First pass: copy the easy areas quickly. Replace <code>/dev/sda</code> with the failing drive (the source goes first, the image second).</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">pass 1</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo ddrescue -f -n /dev/sda /mnt/target/failing.img /mnt/target/failing.map</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">5. Second pass: go back over the bad areas, retrying up to 3 times. Safe to stop and re-run; the map file remembers progress.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">pass 2</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo ddrescue -f -d -r3 /dev/sda /mnt/target/failing.img /mnt/target/failing.map</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">6. Attach the image as a read-only loop device. It prints a device such as <code>/dev/loop0</code>, with partitions like <code>/dev/loop0p2</code>.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">attach image</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo losetup -r -P -f --show /mnt/target/failing.img</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">7. Mount the Windows partition from the image read-only, then use <a href="copy-windows-folders.html">Copy Windows Folders</a> to copy the files. If the partition is BitLocker encrypted, unlock it first as on the <a href="bitlocker-drives.html">BitLocker Drives</a> page, using the loop partition.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">mount source</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo mkdir -p /mnt/source
+sudo mount -t ntfs3 -o ro /dev/loop0p2 /mnt/source</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">8. When finished, unmount and detach.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">detach</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo umount /mnt/source
+sudo losetup -d /dev/loop0</pre>
+    </div>
+    <header style="margin:2.5rem 0 1.5rem"><h1 style="font-size:1.3rem">Smaller image</h1><p>Windows partition only, sparse</p></header>
+    <p class="section-label" style="max-width:900px">The steps above image the whole drive, so the image is as big as the drive. For a smaller file, image <strong>only the Windows partition</strong> (the big NTFS one, e.g. <code>/dev/sda2</code>, not <code>/dev/sda</code>) and use <code>-S</code> (sparse) so empty blocks take no space on the target. Everything else about the process is the same. The target drive must be a filesystem that supports sparse files (ntfs-3g, ext4 and others do). The image will still be as large as the data actually on the partition, so make sure there is room for it.</p>
+    <p class="section-label" style="max-width:900px">A1. First pass on the partition. Use the partition name from <code>lsblk</code> in step 1, not the whole drive.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">pass 1 (partition, sparse)</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo ddrescue -f -n -S /dev/sda2 /mnt/target/failing-part.img /mnt/target/failing-part.map</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">A2. Retry pass, as before.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">pass 2 (partition, sparse)</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo ddrescue -f -d -r3 -S /dev/sda2 /mnt/target/failing-part.img /mnt/target/failing-part.map</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">A3. Attach the image read-only. It is a single partition with no partition table, so no <code>-P</code> and no <code>p2</code>: mount <code>/dev/loop0</code> itself. (If the partition is BitLocker encrypted, unlock <code>/dev/loop0</code> with the <a href="bitlocker-drives.html">BitLocker Drives</a> steps first.)</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">attach and mount</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo losetup -r -f --show /mnt/target/failing-part.img
+sudo mkdir -p /mnt/source
+sudo mount -t ntfs3 -o ro /dev/loop0 /mnt/source</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">A4. Copy the files with <a href="copy-windows-folders.html">Copy Windows Folders</a>, then unmount and detach.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">detach</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo umount /mnt/source
+sudo losetup -d /dev/loop0</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">If the drive disconnects part way through, power-cycle it (unplug and replug, or reboot) and re-run the same command. Do not run repair tools such as <code>chkdsk</code> on a failing drive before the image is made.</p>
+    <footer>Support // Linux // Image a Failing Drive</footer>
+    <script>
+        function copyCode(btn) {
+            var pre = btn.closest('.code-box').querySelector('pre');
+            var code = pre.textContent;
+            function done() { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); }
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(code).then(done);
+            } else {
+                var r = document.createRange(); r.selectNodeContents(pre);
+                var s = getSelection(); s.removeAllRanges(); s.addRange(r);
+                document.execCommand('copy'); done();
+            }
+        }
+    </script>
+</body>
+</html>
