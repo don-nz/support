@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../assets/theme-init.js"></script>
+    <title>Live ISO Setup</title>
+    <link rel="stylesheet" href="../assets/nav-common.css">
+</head>
+<body>
+    <div class="crumb" id="crumb"><a href="../index.html">Support</a> / <a href="index.html">Linux</a> / <span>Live ISO Setup</span></div>
+    <header>
+        <h1>Live ISO Setup</h1>
+        <p>Wi-Fi and tools on the CachyOS live ISO</p>
+    </header>
+
+    <p class="section-label" style="max-width:900px">Boot the stock CachyOS live ISO (from Ventoy), open a terminal and run these. Everything is installed in RAM and disappears on reboot, which is fine for a recovery session.</p>
+    <p class="section-label" style="max-width:900px">1. Connect to Wi-Fi or a phone hotspot. List the networks, then connect; it asks for the password. Replace <code>SSID</code> with the network name.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">wifi</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>nmcli device wifi list
+nmcli --ask device wifi connect &quot;SSID&quot;</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">If no networks show, the radio may be off or blocked.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">wifi radio</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>nmcli radio wifi on
+rfkill unblock wifi</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">2. Check you are online.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">test</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>ping -c 3 archlinux.org</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">3. Install the three tools in one go: <code>ddrescue</code> (imaging), <code>smartmontools</code> (drive health) and <code>testdisk</code> (partition and file recovery). <code>--needed</code> skips any already present. Refresh the package lists with <code>-Sy</code> but do not run a full <code>-Syu</code> on a live ISO, it can fill the RAM overlay.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">install</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo pacman -Sy --needed ddrescue smartmontools testdisk</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">4. See how sick the drive is before choosing between a file copy and <code>ddrescue</code>. Find the drive name first, then run the health check (use <code>/dev/nvme0n1</code> style names for NVMe drives).</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">drive health</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>lsblk -o NAME,FSTYPE,SIZE,MODEL
+sudo smartctl -H /dev/sda
+sudo smartctl -a /dev/sda</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">Reading the result: <code>PASSED</code> only means the drive has not declared itself failed. Look at reallocated, pending and uncorrectable sector counts in the full output; non-zero and rising means image it with <a href="image-failing-drive.html">Image a Failing Drive</a> before anything else. If it looks healthy, <a href="copy-windows-folders.html">Copy Windows Folders</a> is enough.</p>
+    <footer>Support // Linux // Live ISO Setup</footer>
+    <script>
+        function copyCode(btn) {
+            var pre = btn.closest('.code-box').querySelector('pre');
+            var code = pre.textContent;
+            function done() { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); }
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(code).then(done);
+            } else {
+                var r = document.createRange(); r.selectNodeContents(pre);
+                var s = getSelection(); s.removeAllRanges(); s.addRange(r);
+                document.execCommand('copy'); done();
+            }
+        }
+    </script>
+</body>
+</html>
