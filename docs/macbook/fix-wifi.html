@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../assets/theme-init.js"></script>
+    <title>MacBook Fix Wi-Fi</title>
+    <link rel="stylesheet" href="../assets/nav-common.css">
+</head>
+<body>
+    <div class="crumb" id="crumb"><a href="../index.html">Support</a> / <a href="index.html">MacBooks</a> / <span>Fix Wi-Fi</span></div>
+    <header>
+        <h1>Fix Wi-Fi</h1>
+        <p>MacBook Wi-Fi will not connect</p>
+    </header>
+
+    <p class="section-label" style="max-width:900px">For a MacBook whose Wi-Fi will not connect or has disappeared. Open Terminal first: press <code>Cmd</code> + <code>Space</code> for Spotlight, type <code>Terminal</code> and press Enter.</p>
+    <p class="section-label" style="max-width:900px">1. List the network hardware. Look for a <strong>Wi-Fi</strong> port with device <code>en0</code>. If there is no Wi-Fi entry, do step 2.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">list ports</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>networksetup -listallhardwareports</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">2. If the Wi-Fi service is missing, recreate it.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">create Wi-Fi service</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo networksetup -createnetworkservice Wi-Fi en0</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">3. Check the Wi-Fi hardware, whether it has an IP address, and whether the internet and DNS work. No output from <code>ipconfig</code> means no address. If the first ping works and the second does not, it is a DNS problem.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">check status</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>system_profiler SPAirPortDataType
+ipconfig getifaddr en0
+ping -c 3 1.1.1.1
+ping -c 3 apple.com</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">4. If it is still not working, delete the saved network configuration files and <strong>reboot</strong>. macOS rebuilds them on startup. This forgets all saved Wi-Fi networks and may reset other network settings (VPNs, Ethernet, custom DNS), so note any that matter first.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">reset network config</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo rm -f /Library/Preferences/SystemConfiguration/com.apple.airport.preferences.plist
+sudo rm -f /Library/Preferences/SystemConfiguration/com.apple.network.eapolclient.configuration.plist
+sudo rm -f /Library/Preferences/SystemConfiguration/com.apple.wifi.message-tracer.plist
+sudo rm -f /Library/Preferences/SystemConfiguration/NetworkInterfaces.plist
+sudo rm -f /Library/Preferences/SystemConfiguration/preferences.plist</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">5. For a network that still will not connect, such as university (802.1X / enterprise) Wi-Fi, try connecting and then read the last 5 minutes of the Wi-Fi and enterprise-authentication log. <code>eapolclient</code> is the 802.1X client, so errors from it point to the login, certificate or profile.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">check log</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>log show --predicate &#x27;process == &quot;eapolclient&quot; or process == &quot;airportd&quot;&#x27; --last 5m</pre>
+    </div>
+    <div class="article" style="max-width:900px">
+        <h2>Result so far</h2>
+        <p>After steps 1 to 4 and a reboot, a MacBook connected to phone hotspots and home Wi-Fi again. University Wi-Fi still had problems, so the cause there is likely separate (the enterprise login, certificate or profile). See below.</p>
+
+        <h2>University Wi-Fi (ACU, <code>acuwifi</code>)</h2>
+        <p>Steps tried so far. The client has not yet reported back on the result. The Keychain entries were found under <strong>ACUCA</strong>.</p>
+        <ol>
+            <li><strong>Remove the saved network.</strong> If <code>acuwifi</code> is not in the Known Networks list, go to System Settings &gt; Wi-Fi, scroll to the bottom and click <strong>Advanced...</strong>. Find <code>acuwifi</code> (or any ACU entry), click the three dots (<code>...</code>) next to it, choose <strong>Remove From List</strong> and click Done.</li>
+            <li><strong>Remove the saved credentials and certificate from Keychain Access.</strong> Open Keychain Access (<code>Cmd</code> + <code>Space</code>, then search for it). Select <strong>System</strong> (or Local Items) in the sidebar and search for <code>acuwifi</code> (searching for the server name may find nothing). Delete any 802.1X, network password or certificate entries for it. Entries named <strong>ACUCA</strong> were also found; check them as well.</li>
+            <li><strong>Force a fresh login.</strong> Turn Wi-Fi off, wait 5 seconds, turn it on, and pick <code>acuwifi</code> from the scan list. When prompted, enter the <strong>student ID only</strong> as the username (for example <code>s00123456</code>, without <code>@acu.edu.au</code>) and the account password. When the certificate pop-up for <code>mqnvpuise04.acu.edu.au</code> appears, click <strong>Continue</strong> and enter the Mac's administrator password or Touch ID to accept the certificate.</li>
+        </ol>
+        <p>If it still fails, run the step 5 log command straight after a connection attempt and look at the <code>eapolclient</code> errors, or ask the university IT help desk for their Wi-Fi setup profile.</p>
+    </div>
+
+    <footer>Support // MacBooks // Fix Wi-Fi</footer>
+    <script>
+        function copyCode(btn) {
+            var pre = btn.closest('.code-box').querySelector('pre');
+            var code = pre.textContent;
+            function done() { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); }
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(code).then(done);
+            } else {
+                var r = document.createRange(); r.selectNodeContents(pre);
+                var s = getSelection(); s.removeAllRanges(); s.addRange(r);
+                document.execCommand('copy'); done();
+            }
+        }
+    </script>
+</body>
+</html>
