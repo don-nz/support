@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../assets/theme-init.js"></script>
+    <title>MacBook Air Keyboard</title>
+    <link rel="stylesheet" href="../assets/nav-common.css">
+</head>
+<body>
+    <div class="crumb" id="crumb"><a href="../index.html">Support</a> / <a href="index.html">MacBooks</a> / <span>Air Keyboard</span></div>
+    <header>
+        <h1>Air Keyboard</h1>
+        <p>MacBook Air M2 (A2681) dead keyboard / trackpad</p>
+    </header>
+
+    <div class="article">
+        <p>Written for the <strong>MacBook Air M2 2022, model A2681</strong> (Apple Silicon). Other models differ in cabling and part numbers.</p>
+
+        <h2>Step 1: Isolate with external devices</h2>
+        <p>Plug in a USB keyboard/mouse, or pair a Bluetooth one (the trackpad works for pairing if it is alive).</p>
+        <ul>
+            <li><strong>External keyboard works, built-in is dead:</strong> The fault is in the built-in keyboard, its flex cable/connector, or the board.</li>
+            <li><strong>External keyboard also fails:</strong> Suspect software (a hang or input service crash), not the hardware.</li>
+        </ul>
+        <p>Then check the built-in trackpad. On many MacBook Airs some keyboard signals (and on some models the backlight) run through the trackpad flex cable, so a trackpad or cable fault can take out the keyboard as well. This is model dependent, so use it as a pointer, not a rule.</p>
+        <ul>
+            <li><strong>Trackpad works, keyboard dead:</strong> Points at the keyboard itself or its connection to the trackpad flex.</li>
+            <li><strong>Both dead:</strong> Points at the trackpad flex cable or its connector.</li>
+        </ul>
+
+        <h2>Step 2: Software checks</h2>
+        <ol>
+            <li><strong>Mouse Keys:</strong> System Settings &gt; Accessibility &gt; Pointer Control. If on, keys move the cursor and the keyboard looks dead.</li>
+            <li><strong>Slow Keys:</strong> System Settings &gt; Accessibility &gt; Keyboard. Make sure it is off.</li>
+            <li><strong>Safe Mode</strong> (Apple Silicon): Shut down, press and hold the power button until "Loading startup options" appears, select the startup disk, hold <code>Shift</code>, click "Continue in Safe Mode".</li>
+            <li><strong>Boot picker / Recovery:</strong> Test whether keys respond in Startup Options or macOS Recovery. If they work there, the hardware is probably fine and the fault is in macOS. If they are dead there too, move on to the hardware.</li>
+        </ol>
+        <p>There is no SMC or NVRAM reset on Apple Silicon; a full shutdown does the equivalent.</p>
+
+        <h2>Step 3: Apple Diagnostics</h2>
+        <ol>
+            <li>Shut down the MacBook Air completely.</li>
+            <li>Press and hold the power button until "Loading startup options" appears.</li>
+            <li>Press <code>Cmd</code> + <code>D</code> (on an external keyboard if the built-in one is dead).</li>
+            <li>Note any reference codes:
+                <ul>
+                    <li><code>NDK001</code> / <code>NDK003</code> / <code>NDK004</code>: possible keyboard issue.</li>
+                    <li><code>NDR001</code> / <code>NDR003</code> / <code>NDR004</code>: trackpad problem.</li>
+                </ul>
+            </li>
+        </ol>
+        <p><code>NDT</code> codes are Thunderbolt, not keyboard or trackpad. Both an <code>NDK</code> and an <code>NDR</code> code together fits a shared cable fault, but it does not prove it.</p>
+
+        <h2>Step 4: Hardware inspection</h2>
+        <p>Open the bottom case (P5 Pentalobe screws).</p>
+        <ol>
+            <li><strong>Disconnect the battery</strong> before touching any other connector.</li>
+            <li><strong>Inspect the trackpad flex cable</strong> and its connectors (trackpad side and logic board side). Remove the retaining bracket if fitted, unplug, and look under good light/magnification.</li>
+        </ol>
+        <p>Look for:</p>
+        <ul>
+            <li><strong>Corrosion / oxidation:</strong> Green or white deposits on the pins (liquid ingress). The connection sits just below the gap at the top of the trackpad, which is a common entry point.</li>
+            <li><strong>Burn marks:</strong> Seen on the flex cable between the logic board and trackpad in some repairs.</li>
+            <li><strong>Creases or fraying:</strong> Sharp folds can break traces without any visible tear.</li>
+            <li><strong>Partial seating:</strong> Reseat both ends firmly, reconnect the battery and test.</li>
+            <li><strong>Battery swelling:</strong> A swollen battery can strain the connector or the trackpad.</li>
+        </ul>
+
+        <h2>Parts (A2681)</h2>
+        <ul>
+            <li>Trackpad flex cable listings for the A2681 quote <code>821-03871</code> (suffixes vary, e.g. <code>-A</code>, <code>-02/A</code>). Confirm against the seller's compatibility list and the cable you remove before ordering.</li>
+            <li>On some models Apple treats the flex cable as part of the trackpad assembly. Check whether the cable is sold separately.</li>
+            <li>Apple's removal procedure for this model: <a href="https://support.apple.com/en-la/100611">MacBook Air (M2, 2022) Trackpad and Trackpad Flex Cable</a>. The cable is glued to the top case with strong adhesive, so peel it gently.</li>
+            <li>Apple suggests that if a known-good trackpad and cable are available, swapping both and retesting is the way to confirm the cause.</li>
+        </ul>
+
+        <h2>Summary Rules of Thumb</h2>
+        <div class="rules">
+            <ul>
+                <li><strong>Keys dead in the boot picker too, trackpad dead as well, pins clean:</strong> Replace the trackpad flex cable.</li>
+                <li><strong>Corrosion on the connector or board:</strong> Clean with &gt;90% isopropyl alcohol and an ESD brush before ordering parts. Look for other liquid damage.</li>
+                <li><strong>Trackpad works, keyboard dead:</strong> Check the keyboard's own connection before ordering the trackpad cable.</li>
+                <li><strong>Keys work in Recovery or the boot picker:</strong> Treat it as a macOS problem, not hardware.</li>
+            </ul>
+        </div>
+        <p>Reference: Apple's <a href="https://support.apple.com/en-au/117311">Mac Laptops Troubleshooting Input/Output Issues</a> and <a href="https://support.apple.com/en-eg/102334">Apple Diagnostics reference codes</a>.</p>
+    </div>
+
+    <footer>Support // MacBooks // Air Keyboard</footer>
+</body>
+</html>

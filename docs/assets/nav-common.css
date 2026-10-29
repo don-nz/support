@@ -456,3 +456,52 @@ footer {
     color: var(--text);
     tab-size: 4;
 }
+
+/* ── Article text for how-to pages (support site addition) ── */
+.article {
+    width: 100%;
+    max-width: 760px;
+    line-height: 1.6;
+    font-size: 0.9rem;
+}
+
+.article h2 {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    letter-spacing: 0.08em;
+    color: var(--subject);
+    margin: 2rem 0 0.6rem;
+}
+
+.article h2:first-child { margin-top: 0; }
+
+.article h3 {
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    margin: 1.2rem 0 0.4rem;
+}
+
+.article p, .article ul, .article ol { margin-bottom: 0.8rem; }
+
+.article ul, .article ol { padding-left: 1.4rem; }
+
+.article li { margin-bottom: 0.4rem; }
+
+.article ul ul { margin-top: 0.4rem; margin-bottom: 0.2rem; }
+
+.article code {
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 0.8rem;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.05rem 0.3rem;
+}
+
+.article .rules {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--subject);
+    border-radius: 4px;
+    padding: 0.8rem 1rem 0.2rem 1rem;
+}
