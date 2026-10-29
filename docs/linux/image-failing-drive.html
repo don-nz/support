@@ -119,6 +119,31 @@ sudo mount -t ntfs3 -o ro /dev/loop0 /mnt/source</pre>
         <pre>sudo umount /mnt/source
 sudo losetup -d /dev/loop0</pre>
     </div>
+    <header style="margin:2.5rem 0 1.5rem"><h1 style="font-size:1.3rem">Not enough space?</h1><p>When the target is smaller than the drive</p></header>
+    <p class="section-label" style="max-width:900px">A plain <code>ddrescue</code> image is as big as the drive being imaged (a 2 TB drive needs 2 TB free), even if only 400 GB is used. <code>-S</code> sparse writes help only where unused sectors are all zeros; deleted files and old data keep the image bigger, up to the full size.</p>
+    <p class="section-label" style="max-width:900px">Check how much room the target has, and (during or after a sparse image) how much space the image really uses compared with its apparent size.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">check space</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>df -h /mnt/target
+ls -lh /mnt/target/failing-part.img   # apparent size
+du -h /mnt/target/failing-part.img    # space actually used</pre>
+    </div>
+    <p class="section-label" style="max-width:900px"><strong>Option 1: skip the image and copy the files.</strong> If the drive has only a few errors, <a href="copy-windows-folders.html">Copy Windows Folders</a> needs just the size of the folders you choose. Step 5 on that page shows each folder's size before you commit.</p>
+    <p class="section-label" style="max-width:900px"><strong>Option 2: image only the used NTFS data.</strong> <code>ntfsclone --rescue</code> copies only the allocated clusters of an NTFS partition and carries on past read errors, so the image is about the size of the used data. It cannot image anything except NTFS, and the partition must be unmounted. Replace <code>/dev/sda2</code> with the Windows partition. If it refuses or reports problems, fall back to option 1.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">ntfsclone rescue image</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo pacman -Sy --needed ntfs-3g
+sudo umount /mnt/source
+sudo ntfsclone --rescue -O /mnt/target/failing-part.img /dev/sda2</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">Then attach and mount it the same way as the smaller image above (<code>losetup -r -f --show</code>, then mount <code>/dev/loop0</code> read-only) and copy the files from it.</p>
+    <p class="section-label" style="max-width:900px"><strong>Option 3: borrow a bigger disk.</strong> For important data on a dying drive, a full <code>ddrescue</code> image on a drive at least as large as the source is the safest route.</p>
     <p class="section-label" style="max-width:900px">If the drive disconnects part way through, power-cycle it (unplug and replug, or reboot) and re-run the same command. Do not run repair tools such as <code>chkdsk</code> on a failing drive before the image is made.</p>
     <footer>Support // Linux // Image a Failing Drive</footer>
     <script>
