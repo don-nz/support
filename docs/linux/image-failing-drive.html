@@ -40,13 +40,16 @@
         <pre>sudo mkdir -p /mnt/target
 sudo mount -t ntfs-3g -o remove_hiberfile /dev/nvme0n1p3 /mnt/target</pre>
     </div>
-    <p class="section-label" style="max-width:900px">4. First pass: copy the easy areas quickly. Replace <code>/dev/sda</code> with the failing drive (the source goes first, the image second).</p>
+    <p class="section-label" style="max-width:900px">4. First pass: copy the easy areas quickly. Replace <code>/dev/sda</code> with the failing drive (the source goes first, the image second). The image file is created at the drive's full size as a sparse file (it takes no space until written), so the partition table is readable even while the image is partly filled. <code>-S</code> skips writing blocks of zeros, which is what saves space on the target; <code>-f</code> lets <code>ddrescue</code> write into the existing file.</p>
     <div class="code-box" style="margin-bottom:1.5rem">
         <div class="code-bar">
             <span class="code-name">pass 1</span>
             <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
         </div>
-        <pre>sudo ddrescue -f -n /dev/sda /mnt/target/failing.img /mnt/target/failing.map</pre>
+        <pre>IMG=/mnt/target/rescue.img
+MAP=/mnt/target/rescue.map
+sudo truncate -s &quot;$(sudo blockdev --getsize64 /dev/sda)&quot; &quot;$IMG&quot;
+sudo ddrescue -f -d -n -S /dev/sda &quot;$IMG&quot; &quot;$MAP&quot;</pre>
     </div>
     <p class="section-label" style="max-width:900px">5. Second pass: go back over the bad areas, retrying up to 3 times. Safe to stop and re-run; the map file remembers progress.</p>
     <div class="code-box" style="margin-bottom:1.5rem">
@@ -54,24 +57,25 @@ sudo mount -t ntfs-3g -o remove_hiberfile /dev/nvme0n1p3 /mnt/target</pre>
             <span class="code-name">pass 2</span>
             <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
         </div>
-        <pre>sudo ddrescue -f -d -r3 /dev/sda /mnt/target/failing.img /mnt/target/failing.map</pre>
+        <pre>sudo ddrescue -f -d -r3 -S /dev/sda &quot;$IMG&quot; &quot;$MAP&quot;</pre>
     </div>
-    <p class="section-label" style="max-width:900px">6. Attach the image as a read-only loop device. It prints a device such as <code>/dev/loop0</code>, with partitions like <code>/dev/loop0p2</code>.</p>
+    <p class="section-label" style="max-width:900px">6. Attach the image as a read-only loop device. <code>lsblk</code> shows its partitions (<code>/dev/loop0p1</code>, <code>/dev/loop0p2</code> and so on); find the large NTFS Windows one. The first partitions are often a small EFI and reserved partition, so it is not always <code>p2</code>.</p>
     <div class="code-box" style="margin-bottom:1.5rem">
         <div class="code-bar">
             <span class="code-name">attach image</span>
             <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
         </div>
-        <pre>sudo losetup -r -P -f --show /mnt/target/failing.img</pre>
+        <pre>loopdev=$(sudo losetup -r -fP --show &quot;$IMG&quot;)
+lsblk -f &quot;$loopdev&quot;</pre>
     </div>
-    <p class="section-label" style="max-width:900px">7. Mount the Windows partition from the image read-only, then use <a href="copy-windows-folders.html">Copy Windows Folders</a> to copy the files. If the partition is BitLocker encrypted, unlock it first as on the <a href="bitlocker-drives.html">BitLocker Drives</a> page, using the loop partition.</p>
+    <p class="section-label" style="max-width:900px">7. Mount the Windows partition from the image read-only (replace <code>p2</code> with the right partition), then use <a href="copy-windows-folders.html">Copy Windows Folders</a> to copy the files. If the partition is BitLocker encrypted, unlock it first as on the <a href="bitlocker-drives.html">BitLocker Drives</a> page, using the loop partition.</p>
     <div class="code-box" style="margin-bottom:1.5rem">
         <div class="code-bar">
             <span class="code-name">mount source</span>
             <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
         </div>
         <pre>sudo mkdir -p /mnt/source
-sudo mount -t ntfs3 -o ro /dev/loop0p2 /mnt/source</pre>
+sudo mount -t ntfs3 -o ro &quot;${loopdev}p2&quot; /mnt/source</pre>
     </div>
     <p class="section-label" style="max-width:900px">8. When finished, unmount and detach.</p>
     <div class="code-box" style="margin-bottom:1.5rem">
@@ -80,10 +84,11 @@ sudo mount -t ntfs3 -o ro /dev/loop0p2 /mnt/source</pre>
             <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
         </div>
         <pre>sudo umount /mnt/source
-sudo losetup -d /dev/loop0</pre>
+sudo losetup -d &quot;$loopdev&quot;</pre>
     </div>
+
     <header style="margin:2.5rem 0 1.5rem"><h1 style="font-size:1.3rem">Smaller image</h1><p>Windows partition only, sparse</p></header>
-    <p class="section-label" style="max-width:900px">The steps above image the whole drive, so the image is as big as the drive. For a smaller file, image <strong>only the Windows partition</strong> (the big NTFS one, e.g. <code>/dev/sda2</code>, not <code>/dev/sda</code>) and use <code>-S</code> (sparse) so empty blocks take no space on the target. Everything else about the process is the same. The target drive must be a filesystem that supports sparse files (ntfs-3g, ext4 and others do). The image will still be as large as the data actually on the partition, so make sure there is room for it.</p>
+    <p class="section-label" style="max-width:900px">The steps above image the whole drive, so the image can be as big as the drive (sparse writes only help where unused sectors are zeros). For a smaller file, image <strong>only the Windows partition</strong> (the big NTFS one, e.g. <code>/dev/sda2</code>, not <code>/dev/sda</code>) and use <code>-S</code> (sparse) so empty blocks take no space on the target. Everything else about the process is the same. The target drive must be a filesystem that supports sparse files (ntfs-3g, ext4 and others do). The image will still be as large as the data actually on the partition, so make sure there is room for it.</p>
     <p class="section-label" style="max-width:900px">A1. First pass on the partition. Use the partition name from <code>lsblk</code> in step 1, not the whole drive.</p>
     <div class="code-box" style="margin-bottom:1.5rem">
         <div class="code-bar">
