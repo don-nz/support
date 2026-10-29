@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../assets/theme-init.js"></script>
+    <title>Copy Windows Folders</title>
+    <link rel="stylesheet" href="../assets/nav-common.css">
+</head>
+<body>
+    <div class="crumb" id="crumb"><a href="../index.html">Support</a> / <a href="index.html">Linux</a> / <span>Copy Windows Folders</span></div>
+    <header>
+        <h1>Copy Windows Folders</h1>
+        <p>Rescue files from a failing Windows drive</p>
+    </header>
+
+    <p class="section-label" style="max-width:900px">1. List the drives and find the failing source and the target. Note the partition names (e.g. <code>sda2</code>, <code>nvme0n1p3</code>) and use them in the steps below.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">identify drives</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>lsblk -o NAME,FSTYPE,SIZE,MOUNTPOINTS,MODEL</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">2. Mount the failing Windows drive <strong>read-only</strong> as the source.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">mount source</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo mkdir -p /mnt/source
+sudo mount -t ntfs3 -o ro /dev/sda2 /mnt/source</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">3. Mount the target drive. <code>remove_hiberfile</code> lets NTFS mount read-write if Windows left it hibernated.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">mount target</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo mkdir -p /mnt/target
+sudo mount -t ntfs-3g -o remove_hiberfile /dev/nvme0n1p3 /mnt/target</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">4. Copy every user's Pictures folder. <code>--ignore-errors</code> and <code>--timeout=10</code> stop bad sectors from stalling the copy. Re-run it to resume.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">copy pictures</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo rsync -avP --ignore-errors --timeout=10 /mnt/source/Users/*/Pictures/ /mnt/target/Pictures/</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">5. Check how much was copied.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">check size</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>du -sh /mnt/target/Pictures/</pre>
+    </div>
+    <footer>Support // Linux // Copy Windows Folders</footer>
+    <script>
+        function copyCode(btn) {
+            var pre = btn.closest('.code-box').querySelector('pre');
+            var code = pre.textContent;
+            function done() { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); }
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(code).then(done);
+            } else {
+                var r = document.createRange(); r.selectNodeContents(pre);
+                var s = getSelection(); s.removeAllRanges(); s.addRange(r);
+                document.execCommand('copy'); done();
+            }
+        }
+    </script>
+</body>
+</html>
