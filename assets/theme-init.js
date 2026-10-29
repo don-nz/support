@@ -1,0 +1,115 @@
+/* ══════════════════════════════════════════════════════════════════════
+   Cert III — shared light/dark theme toggle.
+
+   Runs INLINE (not defer) and as early in <head> as possible — the first
+   part below reads the saved preference and sets data-theme on <html>
+   before the page paints, so there is no flash of the wrong theme.
+
+   The toggle button itself is injected at runtime — normally inline at
+   the end of the page's own #crumb row (right next to the breadcrumb
+   text, so it sits near the actual content instead of drifting off to
+   the edge of a much wider row/viewport); .theme-toggle-fixed is only a
+   fallback for pages with no #crumb at all. Adding the toggle to a page
+   is just one <script src="…/assets/theme-init.js"></script> tag — no
+   HTML changes needed. The same script appends the copyright line
+   (.site-copyright) to the end of <body>. Every page already loads quiz-common.css or
+   nav-common.css, both of which define the .theme-toggle/.theme-toggle-state-*
+   rules this button uses — it shows the mode you'd SWITCH TO (sun +
+   "Light Mode" while in dark theme, moon + "Dark Mode" while in light).
+   ══════════════════════════════════════════════════════════════════════ */
+
+(function () {
+    var KEY = 'support-theme';
+
+    // Light is the default theme — it applies unless the visitor has
+    // explicitly chosen dark (stored 'dark' below via toggleTheme()).
+    if (localStorage.getItem(KEY) !== 'dark') {
+        document.documentElement.setAttribute('data-theme', 'light');
+    }
+
+    // Always land at the top of the page — mobile browsers in particular
+    // restore the previous scroll position on history back/forward and on
+    // bfcache restores, which can leave a freshly-opened quiz or menu page
+    // scrolled part-way down. 'manual' stops the browser doing that itself;
+    // the pageshow listener forces it back to the top on every kind of
+    // navigation, including the bfcache-restore case that 'load' misses.
+    if (window.history && 'scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual';
+    }
+    window.addEventListener('pageshow', function () { window.scrollTo(0, 0); });
+
+    window.toggleTheme = function () {
+        var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        if (isLight) {
+            document.documentElement.removeAttribute('data-theme');
+            localStorage.setItem(KEY, 'dark');
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+            localStorage.setItem(KEY, 'light');
+        }
+    };
+
+    function injectButton() {
+        if (document.querySelector('.theme-toggle')) return;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'theme-toggle';
+        btn.title = 'Toggle light/dark theme';
+        btn.setAttribute('aria-label', 'Toggle light/dark theme');
+        btn.onclick = window.toggleTheme;
+        btn.innerHTML =
+            '<span class="theme-toggle-state theme-toggle-state-sun"><span class="theme-toggle-icon">☀️</span>Light Mode</span>' +
+            '<span class="theme-toggle-state theme-toggle-state-moon"><span class="theme-toggle-icon">🌙</span>Dark Mode</span>';
+
+        // Sit inline at the end of the breadcrumb row, matching the page's own
+        // content width — not pinned to the viewport corner, which drifts far
+        // from the breadcrumb text on wide screens.
+        var crumb = document.getElementById('crumb');
+        if (crumb && crumb.parentNode) {
+            var row = document.createElement('div');
+            row.className = 'crumb-row';
+            crumb.parentNode.insertBefore(row, crumb);
+            row.appendChild(crumb);
+            row.appendChild(btn);
+        } else {
+            btn.classList.add('theme-toggle-fixed');
+            document.body.appendChild(btn);
+        }
+    }
+
+    // Copyright line at the foot of every page — one string, one place.
+    // Styled by .site-copyright in nav-common.css / quiz-common.css (same
+    // two-file arrangement as .theme-toggle). Keep in step with LICENSE.txt.
+    var COPYRIGHT = '\u00A9 2026 Anderson Home Technology. All rights reserved.';
+    // Set to the licence page's URL once the site is hosted somewhere stable
+    // (e.g. '/license'); while empty the line stays plain text. A relative
+    // path to LICENSE.txt isn't used because it only resolves inside a full
+    // clone of the repo.
+    var COPYRIGHT_URL = '';
+
+    function injectCopyright() {
+        if (document.querySelector('.site-copyright')) return;
+        var p = document.createElement('p');
+        p.className = 'site-copyright';
+        if (COPYRIGHT_URL) {
+            var a = document.createElement('a');
+            a.href = COPYRIGHT_URL;
+            a.textContent = COPYRIGHT;
+            p.appendChild(a);
+        } else {
+            p.textContent = COPYRIGHT;
+        }
+        document.body.appendChild(p);
+    }
+
+    function injectChrome() {
+        injectButton();
+        injectCopyright();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', injectChrome);
+    } else {
+        injectChrome();
+    }
+})();

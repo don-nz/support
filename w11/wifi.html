@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../assets/theme-init.js"></script>
+    <title>W11 WiFi</title>
+    <link rel="stylesheet" href="../assets/nav-common.css">
+</head>
+<body>
+    <div class="crumb" id="crumb"><a href="../index.html">Support</a> / <a href="index.html">W11</a> / <span>WiFi</span></div>
+    <header>
+        <h1>WiFi</h1>
+        <p>Windows 11 Wi-Fi reset &amp; cleanup</p>
+    </header>
+
+    <p class="section-label" style="max-width:900px">Run in PowerShell as Administrator. Clears saved profiles, resets the network stack and removes the Wi-Fi adapter so the driver reinstalls on reboot.</p>
+
+    <div class="code-box">
+        <div class="code-bar">
+            <span class="code-name">wifi-reset.ps1</span>
+            <button class="code-btn" type="button" id="copyBtn">Copy</button>
+            <button class="code-btn" type="button" id="dlBtn">Download</button>
+        </div>
+        <pre id="code"># Requires Administrator privileges
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Host &quot;ERROR: Please run this script as an Administrator!&quot; -ForegroundColor Red
+    Exit
+}
+
+Write-Host &quot;==========================================&quot; -ForegroundColor Cyan
+Write-Host &quot;    WINDOWS 11 WI-FI RESET &amp; CLEANUP     &quot; -ForegroundColor Cyan
+Write-Host &quot;==========================================&quot; -ForegroundColor Cyan
+
+# 1. Remove all saved Wi-Fi profiles
+Write-Host &quot;`n[1/5] Deleting saved Wi-Fi profiles...&quot; -ForegroundColor Yellow
+netsh wlan delete profile name=* | Out-Null
+Write-Host &quot;  -&gt; Saved Wi-Fi profiles cleared.&quot; -ForegroundColor Green
+
+# 2. Reset IP Stack, Winsock, and Flush DNS
+Write-Host &quot;`n[2/5] Resetting TCP/IP stack and flushing DNS...&quot; -ForegroundColor Yellow
+ipconfig /release | Out-Null
+ipconfig /flushdns | Out-Null
+netsh winsock reset | Out-Null
+netsh int ip reset | Out-Null
+Write-Host &quot;  -&gt; Network stack reset complete.&quot; -ForegroundColor Green
+
+# 3. Disable Power Savings on Wi-Fi Adapter (Prevents disconnects)
+Write-Host &quot;`n[3/5] Disabling power-saving management on Wi-Fi adapters...&quot; -ForegroundColor Yellow
+$wifiNetAdapters = Get-NetAdapter -Physical -ErrorAction SilentlyContinue | Where-Object { $_.MediaType -eq &quot;Native 802.11&quot; -or $_.Name -like &quot;*Wi-Fi*&quot; -or $_.InterfaceDescription -like &quot;*Wireless*&quot; -or $_.InterfaceDescription -like &quot;*Wi-Fi*&quot; }
+if ($wifiNetAdapters) {
+    foreach ($adapter in $wifiNetAdapters) {
+        Set-NetAdapterPowerManagement -Name $adapter.Name -AllowComputerToTurnOffDevice Never -ErrorAction SilentlyContinue
+        Write-Host &quot;  -&gt; Power saving disabled for: $($adapter.Name)&quot; -ForegroundColor Green
+    }
+} else {
+    Write-Host &quot;  -&gt; No active Wi-Fi network interface detected for power tweak.&quot; -ForegroundColor DarkGray
+}
+
+# 4. Remove Wi-Fi PNP Device &amp; Driver Registration
+Write-Host &quot;`n[4/5] Locating and removing Wi-Fi adapter device...&quot; -ForegroundColor Yellow
+$pnpAdapters = Get-PnpDevice -Class &quot;Net&quot; -ErrorAction SilentlyContinue | Where-Object { $_.FriendlyName -like &quot;*Wi-Fi*&quot; -or $_.FriendlyName -like &quot;*Wireless*&quot; -or $_.FriendlyName -like &quot;*802.11*&quot; }
+
+if ($pnpAdapters) {
+    foreach ($dev in $pnpAdapters) {
+        Write-Host &quot;  -&gt; Found: $($dev.FriendlyName) [$($dev.InstanceId)]&quot; -ForegroundColor Cyan
+        pnputil /remove-device $dev.InstanceId | Out-Null
+        Write-Host &quot;  -&gt; Device successfully removed.&quot; -ForegroundColor Green
+    }
+} else {
+    Write-Host &quot;  -&gt; No PNP Wi-Fi adapter found to remove.&quot; -ForegroundColor Red
+}
+
+# 5. Prompt for Reboot
+Write-Host &quot;`n[5/5] Process finished!&quot; -ForegroundColor Cyan
+Write-Host &quot;--------------------------------------------------&quot; -ForegroundColor DarkGray
+$reboot = Read-Host &quot;A system restart is required to reinstall the driver and apply changes. Restart now? (Y/N)&quot;
+if ($reboot -eq &quot;Y&quot; -or $reboot -eq &quot;y&quot;) {
+    Write-Host &quot;Restarting system in 5 seconds...&quot; -ForegroundColor Yellow
+    Start-Sleep -Seconds 5
+    Restart-Computer -Force
+} else {
+    Write-Host &quot;Please restart the computer manually before testing Wi-Fi.&quot; -ForegroundColor Yellow
+}
+</pre>
+    </div>
+
+    <footer>Support // W11 // WiFi</footer>
+    <script>
+        var code = document.getElementById('code').textContent;
+        document.getElementById('copyBtn').onclick = function () {
+            var btn = this;
+            function done() { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); }
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(code).then(done);
+            } else {
+                var r = document.createRange(); r.selectNodeContents(document.getElementById('code'));
+                var s = getSelection(); s.removeAllRanges(); s.addRange(r);
+                document.execCommand('copy'); done();
+            }
+        };
+        document.getElementById('dlBtn').onclick = function () {
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([code], { type: 'text/plain' }));
+            a.download = 'wifi-reset.ps1';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,458 @@
+/* ══════════════════════════════════════════════════════════════════════
+   Cert III — shared stylesheet for navigation/index pages.
+
+   Used by every folder-listing "index.html" under cert_iii (subject
+   landing pages, topic landing pages like bjt/, bjt/npn/, bjt/pnp/).
+
+   Each page keeps its own small inline <style> block overriding just the
+   --subject / --subject-dim / --subject-glow variables if it wants a
+   different accent colour — everything else lives here. Do not duplicate
+   these rules back into an individual page's <style> block; add a new rule
+   here instead if every nav page should have it, or keep a true one-off
+   override local to that page only.
+
+   Theme system: same approach as quiz-common.css — every colour/font/glow
+   is a variable, dark values are the unchanged original look, and
+   :root[data-theme="light"] below supplies the "clean institutional"
+   equivalents. Toggling data-theme on <html> switches themes.
+   ══════════════════════════════════════════════════════════════════════ */
+
+:root {
+    --bg: #0f172a;
+    --panel: #121824;
+    --panel2: #0c1119;
+    --border: #1e2d4a;
+    --border-rgb: 30, 45, 74;
+    --grid: rgba(0, 229, 255, 0.06);
+    --text: #e2e8f0;
+    --label: #5a7a9a;
+    --subject: #ffb454;
+    --subject-dim: rgba(255, 180, 84, 0.05);
+    --subject-glow: rgba(255, 180, 84, 0.5);
+    --cyan: #00e5ff;
+    --green: #00ff99;
+    --font-mono: 'Share Tech Mono', monospace;
+    --font-display: 'Orbitron', sans-serif;
+    --font-body: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --header-glow: none;
+    --pill-glow: 0 0 5px rgba(0, 229, 255, 0.35);
+    --pill-glow-hover: 0 0 8px rgba(0, 255, 153, 0.45);
+}
+
+/* ── Light theme — generic "clean institutional" look, not modelled on
+   any specific real institution's brand (blue accent chosen precisely
+   because it carries no single-institution association). ── */
+:root[data-theme="light"] {
+    --bg: #f1f5f9;
+    --panel: #ffffff;
+    --panel2: #f8fafc;
+    --border: #e2e8f0;
+    --border-rgb: 226, 232, 240;
+    --grid: transparent;
+    --text: #1e293b;
+    --label: #64748b;
+    --subject: #2563eb;
+    --subject-dim: rgba(37, 99, 235, 0.06);
+    --subject-glow: rgba(37, 99, 235, 0);
+    --cyan: #2563eb;
+    --green: #16a34a;
+    --font-mono: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-display: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --header-glow: none;
+    --pill-glow: none;
+    --pill-glow-hover: none;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3rem 1.5rem;
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.crumb-row {
+    width: 100%;
+    max-width: 560px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    /* flex-start, not space-between — keeps the toggle right next to the
+       breadcrumb text instead of flung to the row's far edge. */
+    justify-content: flex-start;
+    gap: .75rem;
+}
+
+.crumb {
+    min-width: 0;
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.crumb a {
+    color: var(--label);
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.crumb a:hover {
+    color: var(--subject);
+}
+
+.crumb span {
+    color: var(--subject);
+}
+
+.back-link-row {
+    width: 100%;
+    max-width: 560px;
+    text-align: right;
+    margin-bottom: 0.8rem;
+}
+
+.back-link {
+    display: inline-block;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    text-decoration: none;
+    padding: 0.15rem 0.6rem;
+    border-radius: 0.25rem;
+    border: 1px solid var(--cyan);
+    box-shadow: var(--pill-glow);
+    transition: color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.back-link:hover {
+    color: var(--green);
+    border-color: var(--green);
+    box-shadow: var(--pill-glow-hover);
+}
+
+header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+header h1 {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 5vw, 2.6rem);
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    color: var(--subject);
+    text-shadow: var(--header-glow);
+    text-transform: uppercase;
+}
+
+header p {
+    margin-top: 0.6rem;
+    color: var(--label);
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.section-label {
+    width: 100%;
+    max-width: 560px;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-bottom: 0.5rem;
+    margin-top: 1.8rem;
+}
+
+.section-label:first-of-type { margin-top: 0; }
+
+.nav {
+    width: 100%;
+    max-width: 560px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.nav::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--subject);
+    opacity: 0.7;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1.3rem 0.9rem 1.6rem;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid rgba(var(--border-rgb), 0.6);
+    transition: background 0.15s, color 0.15s;
+}
+
+.nav-item:last-child {
+    border-bottom: none;
+}
+
+.nav-item::after {
+    content: '→';
+    margin-left: auto;
+    opacity: 0;
+    color: var(--subject);
+    transition: opacity 0.15s, transform 0.15s;
+    transform: translateX(-4px);
+    font-size: 0.8rem;
+}
+
+.nav-item:hover {
+    background: var(--subject-dim);
+    color: var(--subject);
+}
+
+.nav-item:hover::after {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.nav-item-icon {
+    font-size: 1rem;
+    opacity: 0.5;
+    width: 1.2rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.nav-item-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.nav-item-name {
+    font-size: 0.78rem;
+}
+
+.nav-item-desc {
+    font-size: 0.62rem;
+    color: var(--label);
+    line-height: 1.5;
+}
+
+/* Copyright line — appended to every page by theme-init.js. */
+.site-copyright {
+    margin: 3rem auto 1.5rem;
+    padding: 0 1rem;
+    text-align: center;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    color: var(--label);
+    opacity: 0.8;
+}
+
+.site-copyright a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+footer {
+    margin-top: 4rem;
+    font-size: 0.65rem;
+    color: var(--label);
+    opacity: 0.4;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.theme-toggle {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .45rem .9rem;
+    font-family: var(--font-body);
+    font-size: .8rem;
+    font-weight: 600;
+    line-height: 1;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+
+/* Fallback ONLY for pages with no #crumb to sit inline next to. */
+.theme-toggle.theme-toggle-fixed {
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 500;
+}
+
+.theme-toggle:hover { border-color: var(--cyan); }
+
+.theme-toggle-state { display: inline-flex; align-items: center; gap: .4rem; }
+.theme-toggle-icon { font-size: 1.1rem; line-height: 1; }
+
+.theme-toggle-state-moon { display: none; }
+
+:root[data-theme="light"] .theme-toggle-state-sun { display: none; }
+
+:root[data-theme="light"] .theme-toggle-state-moon { display: inline-flex; }
+
+/* ── Collapsible section toggles — opt-in. Only pages that swap their
+   .section-label divs for .section-toggle buttons (see UEEEC0066/index.html)
+   get expand/collapse behaviour; every other page's plain .section-label
+   is untouched. ── */
+.section-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 560px;
+    font: inherit;
+    font-family: var(--font-body);
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--label);
+    background: none;
+    border: none;
+    padding: 0;
+    margin-bottom: 0.5rem;
+    margin-top: 1.8rem;
+    cursor: pointer;
+    transition: color 0.15s;
+}
+
+.section-toggle:first-of-type { margin-top: 0; }
+
+.section-toggle:hover { color: var(--subject); }
+
+/* Glyph is driven entirely by aria-expanded, not JS-set text, so it can
+   never drift out of sync with the section's actual state. */
+.section-toggle-icon {
+    display: inline-block;
+    width: 1rem;
+    flex-shrink: 0;
+    text-align: center;
+    font-size: 0.85rem;
+    line-height: 1;
+}
+
+.section-toggle-icon::before { content: '−'; }
+
+.section-toggle[aria-expanded="false"] .section-toggle-icon::before { content: '+'; }
+
+.nav[hidden] { display: none; }
+
+/* ── Nested section: a .section-toggle/.nav pair dropped INSIDE another
+   .nav, as a sub-group of that list (e.g. "Logic Gates" under Exercises).
+   Strip the nested .nav's own card chrome (border/background/accent bar)
+   so it reads as more rows of the SAME card rather than a second card
+   glued on top, then indent both the nested toggle and its nav-items so
+   the extra nesting level is visible at a glance. ── */
+.nav .section-toggle {
+    max-width: none;
+    margin: 0;
+    padding: 0.75rem 1.3rem 0.75rem 1.6rem;
+    border-bottom: 1px solid rgba(var(--border-rgb), 0.6);
+}
+
+.nav .nav {
+    max-width: none;
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+}
+
+.nav .nav::before { display: none; }
+
+.nav .nav .nav-item { padding-left: 3.2rem; }
+
+/* ── A third level of nesting (e.g. Exercises → Term → Logic Gates →
+   items) — one more indent step than the pair above for whatever sits
+   inside that second-level .nav, so the extra depth stays visible at a
+   glance instead of collapsing back to the same indent as its own
+   parent. ── */
+.nav .nav .section-toggle { padding-left: 3.2rem; }
+
+.nav .nav .nav .nav-item { padding-left: 4.8rem; }
+
+/* ── Code box with copy/download buttons (support site addition) ── */
+.code-box {
+    width: 100%;
+    max-width: 900px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.code-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.8rem;
+    background: var(--panel2);
+    border-bottom: 1px solid var(--border);
+}
+
+.code-bar .code-name {
+    margin-right: auto;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: var(--label);
+}
+
+.code-btn {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    background: none;
+    border: 1px solid var(--cyan);
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.7rem;
+    cursor: pointer;
+}
+
+.code-btn:hover { color: var(--green); border-color: var(--green); }
+
+.code-box pre {
+    margin: 0;
+    padding: 1rem;
+    max-height: 70vh;
+    overflow: auto;
+    font-family: ui-monospace, 'Share Tech Mono', Consolas, monospace;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: var(--text);
+    tab-size: 4;
+}
