@@ -41,21 +41,63 @@ sudo mount -t ntfs3 -o ro /dev/sda2 /mnt/source</pre>
         <pre>sudo mkdir -p /mnt/target
 sudo mount -t ntfs-3g -o remove_hiberfile /dev/nvme0n1p3 /mnt/target</pre>
     </div>
-    <p class="section-label" style="max-width:900px">4. Copy every user's Pictures folder. <code>--ignore-errors</code> and <code>--timeout=10</code> stop bad sectors from stalling the copy. Re-run it to resume.</p>
+    <p class="section-label" style="max-width:900px">4. List the user profiles on the drive, then set the variables. Put the profile name in <code>SRC</code> and edit <code>FOLDERS</code> to the base folders you want. These are <strong>bash</strong> commands (the CachyOS live terminal is bash). If the user has OneDrive, Desktop and Documents may be inside <code>OneDrive</code> as well, so check that folder too.</p>
     <div class="code-box" style="margin-bottom:1.5rem">
         <div class="code-bar">
-            <span class="code-name">copy pictures</span>
+            <span class="code-name">set variables</span>
             <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
         </div>
-        <pre>sudo rsync -avP --ignore-errors --timeout=10 /mnt/source/Users/*/Pictures/ /mnt/target/Pictures/</pre>
+        <pre>ls /mnt/source/Users
+
+SRC=&quot;/mnt/source/Users/Name&quot;
+DST=&quot;/mnt/target/Recovered/Name&quot;
+FOLDERS=(Desktop Documents Downloads Pictures Music Videos)
+
+ls &quot;$SRC&quot;</pre>
     </div>
-    <p class="section-label" style="max-width:900px">5. Check how much was copied.</p>
+    <p class="section-label" style="max-width:900px">5. Show the file count and total size of each base folder. This reads directory information only, not file contents, but on a failing drive it can still be slow or print errors.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">files and size per folder</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>for f in &quot;${FOLDERS[@]}&quot;; do
+  n=$(sudo find &quot;$SRC/$f&quot; -type f 2&gt;/dev/null | wc -l)
+  s=$(sudo du -sh &quot;$SRC/$f&quot; 2&gt;/dev/null | cut -f1)
+  printf &#x27;%-12s %8s files  %s\n&#x27; &quot;$f&quot; &quot;$n&quot; &quot;$s&quot;
+done</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">6. Count the files by type (extension) in one base folder, most common first. Change <code>BASE</code> to the folder you want to look at.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">files by type</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>BASE=&quot;$SRC/Pictures&quot;
+sudo find &quot;$BASE&quot; -type f 2&gt;/dev/null \
+  | sed -E &#x27;s/.*\.([^./]+)$/\1/;t;s/.*/(none)/&#x27; \
+  | tr &#x27;A-Z&#x27; &#x27;a-z&#x27; | sort | uniq -c | sort -rn</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">7. Copy the base folders with their subfolders and files. It asks <code>y/N</code> for each folder in <code>FOLDERS</code>, so you choose as you go; delete the <code>read</code> and <code>continue</code> lines to copy them all without asking. <code>--ignore-errors</code> and <code>--timeout=10</code> stop bad sectors from stalling the copy. Re-run it to resume.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">copy chosen folders</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>for f in &quot;${FOLDERS[@]}&quot;; do
+  read -r -p &quot;Copy $f? [y/N] &quot; ans
+  [[ $ans == [yY]* ]] || continue
+  sudo mkdir -p &quot;$DST/$f&quot;
+  sudo rsync -avP --ignore-errors --timeout=10 &quot;$SRC/$f/&quot; &quot;$DST/$f/&quot;
+done</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">8. Check how much was copied, per folder.</p>
     <div class="code-box" style="margin-bottom:1.5rem">
         <div class="code-bar">
             <span class="code-name">check size</span>
             <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
         </div>
-        <pre>du -sh /mnt/target/Pictures/</pre>
+        <pre>du -sh &quot;$DST&quot;/*/</pre>
     </div>
     <footer>Support // Linux // Copy Windows Folders</footer>
     <script>

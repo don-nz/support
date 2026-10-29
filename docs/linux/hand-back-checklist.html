@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../assets/theme-init.js"></script>
+    <title>Before You Hand It Back</title>
+    <link rel="stylesheet" href="../assets/nav-common.css">
+</head>
+<body>
+    <div class="crumb" id="crumb"><a href="../index.html">Support</a> / <a href="index.html">Linux</a> / <span>Hand Back Checklist</span></div>
+    <header>
+        <h1>Before You Hand It Back</h1>
+        <p>Drive recovery checklist</p>
+    </header>
+
+    <div class="article">
+        <p>A failing drive can behave differently each time it is plugged in, and may never read again once it is disconnected. Treat the first good session as the only one.</p>
+
+        <h2>Before you start</h2>
+        <ul>
+            <li>Check the drive's health with <code>smartctl</code> (see <a href="live-iso-setup.html">Live ISO Setup</a>) and the kernel log (see <a href="find-mount-errors.html">Find Mount Errors</a>). Save both outputs to a file.</li>
+            <li>Connect the drive <strong>directly</strong> to a SATA port where possible. A dock adds its own problems and can hide drive errors.</li>
+            <li>If it is BitLocker encrypted, get the recovery key before anything else. See <a href="bitlocker-drives.html">BitLocker Drives</a>.</li>
+        </ul>
+
+        <h2>Image first if the drive shows read errors</h2>
+        <ul>
+            <li>If you see <code>UNC</code> errors or rising bad-sector counts, make the <code>ddrescue</code> image before copying files. See <a href="image-failing-drive.html">Image a Failing Drive</a>.</li>
+            <li>Do the copy from the image, so you can go back again later without touching the dying drive.</li>
+            <li>Do not run repair tools such as <code>chkdsk</code> on the drive.</li>
+        </ul>
+
+        <h2>Before you hand it back</h2>
+        <ul>
+            <li><strong>Ask the owner what they need,</strong> by name: Documents, Desktop, Pictures, Downloads, email data, browser bookmarks, accounting or other program data, other user accounts. <a href="copy-windows-folders.html">Copy Windows Folders</a> only copies Pictures; copy the other folders the same way.</li>
+            <li><strong>Have the owner check the files</strong> before you finish: open a few, check folder sizes, and look for anything missing. Do not take their word that it is all there until they have looked.</li>
+            <li><strong>Keep the drive until the owner confirms.</strong> Do not take it away or return it to the original PC until they say they have everything. If they find something missing, you can plug it back in or re-copy from the image.</li>
+            <li><strong>Keep the image</strong> for a few days after the job, in case something turns up missing later.</li>
+        </ul>
+    </div>
+
+    <footer>Support // Linux // Hand Back Checklist</footer>
+</body>
+</html>
