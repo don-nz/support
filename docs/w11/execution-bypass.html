@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../assets/theme-init.js"></script>
+    <title>W11 Execution Bypass</title>
+    <link rel="stylesheet" href="../assets/nav-common.css">
+</head>
+<body>
+    <div class="crumb" id="crumb"><a href="../index.html">Support</a> / <a href="index.html">W11</a> / <span>Execution Bypass</span></div>
+    <header>
+        <h1>Execution Bypass</h1>
+        <p>Run a blocked PowerShell script</p>
+    </header>
+
+    <p class="section-label" style="max-width:900px">Run a single script, bypassing the execution policy for that run only. Replace the path with the script's location.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">run one script</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>powershell -ExecutionPolicy Bypass -File "C:\Path\To\Reset-WiFi.ps1"</pre>
+    </div>
+
+    <p class="section-label" style="max-width:900px">Or bypass the policy for the current PowerShell window only, then run scripts as normal. It reverts when the window closes.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">current window only</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass</pre>
+    </div>
+
+    <footer>Support // W11 // Execution Bypass</footer>
+    <script>
+        function copyCode(btn) {
+            var code = btn.closest('.code-box').querySelector('pre').textContent;
+            function done() { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); }
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(code).then(done);
+            } else {
+                var r = document.createRange(); r.selectNodeContents(btn.closest('.code-box').querySelector('pre'));
+                var s = getSelection(); s.removeAllRanges(); s.addRange(r);
+                document.execCommand('copy'); done();
+            }
+        }
+    </script>
+</body>
+</html>

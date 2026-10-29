@@ -18,7 +18,7 @@
 
     <div class="code-box">
         <div class="code-bar">
-            <span class="code-name">wifi-reset.ps1</span>
+            <span class="code-name">Reset-WiFi.ps1</span>
             <button class="code-btn" type="button" id="copyBtn">Copy</button>
             <button class="code-btn" type="button" id="dlBtn">Download</button>
         </div>
@@ -102,7 +102,7 @@ if ($reboot -eq &quot;Y&quot; -or $reboot -eq &quot;y&quot;) {
         document.getElementById('dlBtn').onclick = function () {
             var a = document.createElement('a');
             a.href = URL.createObjectURL(new Blob([code], { type: 'text/plain' }));
-            a.download = 'wifi-reset.ps1';
+            a.download = 'Reset-WiFi.ps1';
             a.click();
             URL.revokeObjectURL(a.href);
         };
