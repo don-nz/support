@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../assets/theme-init.js"></script>
+    <title>Clone Disk</title>
+    <link rel="stylesheet" href="../assets/nav-common.css">
+</head>
+<body>
+    <div class="crumb" id="crumb"><a href="../index.html">Support</a> / <a href="index.html">Linux</a> / <span>Clone Disk</span></div>
+    <header>
+        <h1>Clone Disk</h1>
+        <p>Copy a whole disk to another disk</p>
+    </header>
+
+    <p class="section-label" style="max-width:900px">Clone one whole disk onto another with <code>ddrescue</code>. <strong>Everything on the destination disk is overwritten</strong>, and the destination must be at least as large as the source. If you only need the files, or the destination is smaller, use <a href="image-failing-drive.html">Image a Failing Drive</a> instead.</p>
+    <p class="section-label" style="max-width:900px">1. Identify the source (the disk to copy from) and the destination (the disk to overwrite). Check the size and model of each carefully. Getting them the wrong way round destroys the data you are trying to save.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">identify drives</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>lsblk</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">2. Install <code>ddrescue</code> if the live ISO does not have it. The Arch/CachyOS package is named <code>ddrescue</code>.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">install</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo pacman -Sy ddrescue</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">3. Clone. The source comes first, then the destination, then a log (map) file. Replace <code>/dev/sda</code> (source) and <code>/dev/sdb</code> (destination) with your drives. <code>-d</code> reads the source directly, <code>-f</code> allows writing to a disk, and <code>-r1</code> retries bad areas once. Safe to stop and re-run with the same command; the log remembers progress.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">clone</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo ddrescue -d -f -r1 /dev/sda /dev/sdb clone.log</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">The log file is written to the current folder. On a live ISO that is in RAM and disappears on reboot, so for a long job point it at a drive that stays connected (for example <code>/mnt/target/clone.log</code>) so you can resume after a restart. If the source drops out part way through, power-cycle it and re-run the same command.</p>
+    <footer>Support // Linux // Clone Disk</footer>
+    <script>
+        function copyCode(btn) {
+            var pre = btn.closest('.code-box').querySelector('pre');
+            var code = pre.textContent;
+            function done() { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); }
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(code).then(done);
+            } else {
+                var r = document.createRange(); r.selectNodeContents(pre);
+                var s = getSelection(); s.removeAllRanges(); s.addRange(r);
+                document.execCommand('copy'); done();
+            }
+        }
+    </script>
+</body>
+</html>
