@@ -15,6 +15,15 @@
     </header>
 
     <p class="section-label" style="max-width:900px">Clone one whole disk onto another with <code>ddrescue</code>. <strong>Everything on the destination disk is overwritten</strong>, and the destination must be at least as large as the source. If you only need the files, or the destination is smaller, use <a href="image-failing-drive.html">Image a Failing Drive</a> instead.</p>
+    <p class="section-label" style="max-width:900px"><strong>Optional first step: shrink the partition.</strong> If the destination is smaller than the source disk, shrink the Windows partition first so the data fits, then follow <em>Clone to a smaller disk</em> at the bottom of this page instead of step 3. In GParted, right-click the partition, choose Resize/Move, reduce the size and apply. Only do this on a <strong>healthy</strong> source: resizing writes to the disk and can lose data on a failing one, and on a failing disk you should use <a href="image-failing-drive.html">Image a Failing Drive</a> or copy the files instead. Windows partitions that were hibernated or shut down with Fast Startup, or are BitLocker encrypted, cannot be resized until that is cleared.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">install and run GParted</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo pacman -Sy gparted
+sudo gparted</pre>
+    </div>
     <p class="section-label" style="max-width:900px">1. Identify the source (the disk to copy from) and the destination (the disk to overwrite). Check the size and model of each carefully. Getting them the wrong way round destroys the data you are trying to save.</p>
     <div class="code-box" style="margin-bottom:1.5rem">
         <div class="code-bar">
@@ -40,6 +49,37 @@
         <pre>sudo ddrescue -d -f -r1 /dev/sda /dev/sdb clone.log</pre>
     </div>
     <p class="section-label" style="max-width:900px">The log file is written to the current folder. On a live ISO that is in RAM and disappears on reboot, so for a long job point it at a drive that stays connected (for example <code>/mnt/target/clone.log</code>) so you can resume after a restart. If the source drops out part way through, power-cycle it and re-run the same command.</p>
+    <header style="margin:2.5rem 0 1.5rem"><h1 style="font-size:1.3rem">Clone to a smaller disk</h1><p>For example 1 TB mechanical to 500 GB NVMe</p></header>
+    <p class="section-label" style="max-width:900px">A plain clone fails when the destination is smaller than the source, because <code>ddrescue</code> tries to copy the whole source disk. The fix is to shrink the Windows partition so everything sits near the start of the disk, then copy only that part. Use this for a <strong>healthy</strong> source (a disk upgrade); on a failing disk use <a href="image-failing-drive.html">Image a Failing Drive</a> or copy the files. Keep the original disk untouched until the new one boots. In the commands, <code>/dev/sda</code> is the source and <code>/dev/sdb</code> is the destination (an NVMe in a USB dock appears as a <code>sdX</code> disk); check with <code>lsblk</code>.</p>
+    <p class="section-label" style="max-width:900px">A1. Shrink the Windows partition in GParted (see the optional step at the top) so the used data fits with room to spare: for 90 GB used, 150 to 200 GB is plenty. If a Recovery partition sits after the Windows partition, move it left as well, so that <strong>no partition ends beyond the size of the destination disk</strong>. Apply the changes.</p>
+    <p class="section-label" style="max-width:900px">A2. Work out where the last partition ends, in bytes. This prints a number such as <code>96600000001</code>.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">end of last partition</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>END=$(sudo parted -m /dev/sda unit B print | awk -F: &#x27;NR&gt;2{gsub(&quot;B&quot;,&quot;&quot;,$3); if($3+0&gt;m)m=$3+0} END{printf &quot;%d&quot;, m+1}&#x27;)
+echo &quot;$END&quot;</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">A3. Clone only that part of the disk. <code>-s</code> limits how much is copied; without it <code>ddrescue</code> would try to fill the whole 500 GB destination from the 1 TB source. Put the log on a drive that stays connected if you can.</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">clone first part</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo ddrescue -f -d -s &quot;$END&quot; /dev/sda /dev/sdb clone.log</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">A4. GPT disks only: the backup copy of the partition table is stored at the end of the source disk and is missing on the destination. Move it to the end of the new disk, and check the result. (Not needed for old MBR disks. <code>parted</code> may offer to fix this itself.)</p>
+    <div class="code-box" style="margin-bottom:1.5rem">
+        <div class="code-bar">
+            <span class="code-name">fix GPT</span>
+            <button class="code-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>sudo pacman -Sy gptfdisk
+sudo sgdisk -e /dev/sdb
+sudo parted /dev/sdb print</pre>
+    </div>
+    <p class="section-label" style="max-width:900px">A5. Optional: in GParted, grow the Windows partition on the new disk to use the rest of the space, then fit the new disk in the PC and boot from it.</p>
     <footer>Support // Linux // Clone Disk</footer>
     <script>
         function copyCode(btn) {
