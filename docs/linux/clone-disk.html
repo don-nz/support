@@ -69,6 +69,7 @@ echo &quot;$END&quot;</pre>
         </div>
         <pre>sudo ddrescue -f -d -s &quot;$END&quot; /dev/sda /dev/sdb clone.log</pre>
     </div>
+    <p class="section-label" style="max-width:900px"><strong>Units:</strong> <code>ddrescue</code> sizes use <code>G</code> for 10<sup>9</sup> bytes and <code>Gi</code> for 2<sup>30</sup> bytes, while GParted shows binary sizes (GiB). A partition shrunk to 150 GiB is about 161 GB, so <code>-s 160G</code> would cut off the end of it. If you prefer a fixed margin to the exact <code>END</code> above, use <code>Gi</code> and allow for the EFI, reserved and Recovery partitions around the Windows one: for example <code>END="160Gi"</code> for a partition shrunk to 150 GiB. Any Recovery partition must be moved left so it ends below that limit. The exact calculation is safer, and a larger margin means copying more empty space.</p>
     <p class="section-label" style="max-width:900px">A4. GPT disks only: the backup copy of the partition table is stored at the end of the source disk and is missing on the destination. Move it to the end of the new disk, and check the result. (Not needed for old MBR disks. <code>parted</code> may offer to fix this itself.)</p>
     <div class="code-box" style="margin-bottom:1.5rem">
         <div class="code-bar">
